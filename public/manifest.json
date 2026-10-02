@@ -1,0 +1,35 @@
+{
+  "id": "/",
+  "name": "الجدول والاحتياط المدرسي",
+  "short_name": "الجدول والاحتياط المدرسي",
+  "description": "نظام مدرسي متكامل لإدارة وعرض جداول الحصص والاحتياط والمناوبة لشاشات العرض وهواتف المعلمين والإدارة.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#0f172a",
+  "background_color": "#020617",
+  "lang": "ar",
+  "dir": "rtl",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

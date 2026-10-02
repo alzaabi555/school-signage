@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+
+:root {
+  color-scheme: light;
+  --school-navy: #102a43;
+  --school-blue: #1d4ed8;
+  --school-gold: #c6922e;
+  --school-green: #07875b;
+}
+
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.no-scrollbar,
+.scrollbar-none { scrollbar-width: none; }
+.scrollbar-thin { scrollbar-width: thin; scrollbar-color: #94a3b8 transparent; }
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fade-in 0.35s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
