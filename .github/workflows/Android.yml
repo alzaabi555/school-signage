@@ -44,6 +44,18 @@ jobs:
           npx cap add android || true
           npx cap sync android
 
+      - name: Resolve Kotlin Duplicate Classes
+        run: |
+          cat << 'EOF' >> android/app/build.gradle
+
+          configurations.all {
+              resolutionStrategy {
+                  force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22'
+                  force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22'
+              }
+          }
+          EOF
+
       - name: Grant execute permission for gradlew
         run: chmod +x android/gradlew
 
