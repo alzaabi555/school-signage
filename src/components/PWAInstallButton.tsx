@@ -115,12 +115,12 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
             {/* رأس النافذة */}
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-800">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-white p-1 flex items-center justify-center shadow-md shadow-cyan-500/20 shrink-0">
-                  <SchoolLogo className="w-8 h-8" />
+                <div className="w-11 h-11 rounded-2xl bg-white flex items-center justify-center shadow-md shadow-cyan-500/20 shrink-0 overflow-hidden">
+                  <SchoolLogo className="w-full h-full" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-white font-['Cairo']">
-                    تثبيت «الجدول والاحتياط المدرسي» على جهازك
+                    تثبيت «راصد - الجدول المدرسي والاحتياط» على جهازك
                   </h3>
                   <p className="text-[11px] text-slate-400">
                     يعمل كتطبيق جوال أصلي وسريع وبدون شريط المتصفح
