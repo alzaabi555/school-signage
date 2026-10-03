@@ -25,6 +25,7 @@ interface AdminSidebarProps {
   activeTab: AdminTabType;
   onSelectTab: (tab: AdminTabType) => void;
   onSwitchToDisplay: () => void;
+  onOpenAuthModal?: () => void;
   isOnline: boolean;
   isSaving: boolean;
   saveStatusMsg: string | null;
@@ -44,13 +45,14 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   activeTab,
   onSelectTab,
   onSwitchToDisplay,
+  onOpenAuthModal,
   isOnline,
   isSaving,
   saveStatusMsg,
   isOpenMobile,
   onCloseMobile,
 }) => {
-  const { currentUser, isFirestoreConnected, signInWithGoogle, logOut } = useFirebase();
+  const { currentUser, isFirestoreConnected, logOut } = useFirebase();
 
   const navItems: NavItem[] = [
     {
@@ -131,7 +133,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         {/* زر الدخول المعتمد بحساب Google Workspace */}
         {currentUser ? (
           <div className="w-full bg-indigo-50/70 border border-indigo-200 text-indigo-900 rounded-2xl p-2.5 flex items-center justify-between shadow-2xs">
-            <div className="flex items-center gap-2.5 overflow-hidden">
+            <div
+              onClick={() => onOpenAuthModal?.()}
+              className="flex items-center gap-2.5 overflow-hidden cursor-pointer hover:opacity-85 transition"
+              title="إدارة جلسة المشرف"
+            >
               <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                 {currentUser.displayName ? currentUser.displayName[0] : 'أ'}
               </div>
@@ -156,11 +162,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         ) : (
           <button
             type="button"
-            onClick={() => signInWithGoogle()}
+            onClick={() => onOpenAuthModal?.()}
             className="w-full bg-indigo-50/80 hover:bg-indigo-100/90 active:scale-[0.99] border border-indigo-200/90 text-indigo-900 rounded-2xl py-3 px-3.5 font-bold text-xs flex items-center justify-between transition-all shadow-2xs cursor-pointer group"
           >
             <span className="font-['Cairo'] text-indigo-900 group-hover:text-indigo-950 transition-colors">
-              دخول معتمد (Google Workspace)
+              دخول المشرف (السحابة والخدمات)
             </span>
             <LogIn className="w-4 h-4 text-indigo-600 group-hover:scale-105 transition-transform" />
           </button>

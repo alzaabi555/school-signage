@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SchoolSettings } from '../../types';
 import { SchoolLogo } from '../common/SchoolLogo';
 import { useFirebase } from '../../contexts/FirebaseContext';
+import { AdminAuthModal } from './AdminAuthModal';
 import {
   Tv,
   Users,
@@ -40,7 +41,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   isSaving,
   saveStatusMsg,
 }) => {
-  const { currentUser, isFirestoreConnected, signInWithGoogle, logOut } = useFirebase();
+  const { currentUser, isFirestoreConnected } = useFirebase();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const tabs = [
     { id: 'substitutions' as AdminTabType, label: 'الاحتياط اليومي', icon: <Users className="w-4 h-4" /> },
@@ -97,31 +99,27 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 
           {/* حساب المشرف في Firebase Auth */}
           {currentUser ? (
-            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-xl text-xs">
+            <div
+              onClick={() => setShowAuthModal(true)}
+              className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 px-2.5 py-1.5 rounded-xl text-xs cursor-pointer transition"
+              title="إدارة جلسة المشرف وخدمات السحابة"
+            >
               <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-[10px]">
                 {currentUser.displayName ? currentUser.displayName[0] : 'أ'}
               </div>
               <span className="text-slate-700 font-semibold truncate max-w-[120px]">
                 {currentUser.displayName || currentUser.email?.split('@')[0]}
               </span>
-              <button
-                type="button"
-                onClick={() => logOut()}
-                className="text-slate-400 hover:text-rose-600 p-0.5 rounded transition"
-                title="تسجيل الخروج من حساب المشرف"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-              </button>
             </div>
           ) : (
             <button
               type="button"
-              onClick={() => signInWithGoogle()}
+              onClick={() => setShowAuthModal(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl transition border border-indigo-200 text-xs font-bold shadow-2xs active:scale-95 cursor-pointer"
-              title="تسجيل الدخول بحساب Google المشرف"
+              title="تسجيل دخول المشرف وربط السحابة"
             >
               <LogIn className="w-3.5 h-3.5 text-indigo-600" />
-              <span>دخول Google</span>
+              <span>دخول المشرف (السحابة)</span>
             </button>
           )}
 
@@ -166,6 +164,11 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           );
         })}
       </div>
+
+      <AdminAuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </header>
   );
 };

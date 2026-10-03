@@ -503,8 +503,29 @@ export const TimetableTab: React.FC<TimetableTabProps> = ({
   };
 
   // تصدير الجدول الحالي كاملاً لملف Excel احترافي مع عكس الاحتياط
-  const handleExportCurrentTimetableExcel = () => {
-    exportOfficialTimetableToExcel(timetable, 'الجدول_المدرسي_المعتمد_32_فصلا_محدث.xlsx', substitutions);
+  const handleExportCurrentTimetableExcel = async () => {
+    try {
+      setExcelSuccessMsg('جارٍ تجهيز ملف Excel ومشاركته / تنزيله...');
+      await exportOfficialTimetableToExcel(timetable, 'الجدول_المدرسي_المعتمد_32_فصلا_محدث.xlsx', substitutions);
+      setExcelSuccessMsg('تم تجهيز وتصدير ملف Excel بنجاح! إذا كنت على هاتف أندرويد فقد فُتحت لك نافذة المشاركة والحفظ.');
+      setTimeout(() => setExcelSuccessMsg(null), 6000);
+    } catch (err) {
+      console.error('Export error', err);
+      alert('حدث خطأ أثناء تصدير ملف Excel: ' + (err instanceof Error ? err.message : String(err)));
+    }
+  };
+
+  // تحميل قالب الجدول بصيغة Excel
+  const handleDownloadTemplateWithFeedback = async () => {
+    try {
+      setExcelSuccessMsg('جارٍ تجهيز قالب Excel ومشاركته / تنزيله...');
+      await downloadSchoolExcelTemplate();
+      setExcelSuccessMsg('تم تجهيز القالب بنجاح! يمكنك فتحه وتعبئته ثم رفعه للبرنامج.');
+      setTimeout(() => setExcelSuccessMsg(null), 6000);
+    } catch (err) {
+      console.error('Download template error', err);
+      alert('حدث خطأ أثناء تحميل القالب: ' + (err instanceof Error ? err.message : String(err)));
+    }
   };
 
   // توليد جدول 32 فصلاً تجريبياً كاملاً بنقرة واحدة
@@ -512,6 +533,18 @@ export const TimetableTab: React.FC<TimetableTabProps> = ({
     const demoItems = generateFull32ClassesTimetable();
     await onBulkReplaceTimetable(demoItems);
     setExcelSuccessMsg(`تم توليد واعتماد جدول 32 فصلاً كاملاً لجميع الحصص الثمانية (${demoItems.length} حصة) بنجاح!`);
+  };
+
+  // إفراغ الجدول المدرسي للبدء من الصفر لمدرسة جديدة
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const handleClearTimetableForNewSchool = async () => {
+    try {
+      await onBulkReplaceTimetable([]);
+      setExcelSuccessMsg('تم إفراغ جدول الحصص بالكامل بنجاح. يمكنك الآن رفع واستيراد جدول مدرستك الجديد عبر Excel أو الربط مع السحابة.');
+      setShowClearConfirm(false);
+    } catch (err) {
+      alert(`حدث خطأ أثناء إفراغ الجدول: ${err instanceof Error ? err.message : String(err)}`);
+    }
   };
 
   // حالة تكليف احتياط سريع من صف الحصة بالجدول مباشرة
@@ -694,10 +727,30 @@ export const TimetableTab: React.FC<TimetableTabProps> = ({
               <span>نقل فصل لمعلم آخر</span>
             </button>
 
+            {/* زر إفراغ الجدول لمدرسة جديدة للبدء من الصفر */}
+            <button
+              onClick={() => setShowClearConfirm(true)}
+              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition active:scale-95 shadow-2xs"
+              title="إفراغ الجدول الحالي بالكامل للبدء بجدول فارغ خاص بمدرستك"
+            >
+              <Trash2 className="w-4 h-4 text-rose-600" />
+              <span>إفراغ الجدول (مدرسة جديدة)</span>
+            </button>
+
+            {/* زر استعادة الجدول التجريبي */}
+            <button
+              onClick={handleGenerate32ClassesDemo}
+              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold transition active:scale-95"
+              title="استعادة أو توليد الجدول التجريبي لـ 32 فصلاً"
+            >
+              <Sparkles className="w-4 h-4 text-amber-600" />
+              <span>استعادة الجدول التجريبي</span>
+            </button>
+
             {/* زر تحميل القالب */}
             <button
-              onClick={downloadSchoolExcelTemplate}
-              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold transition active:scale-95"
+              onClick={handleDownloadTemplateWithFeedback}
+              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold transition active:scale-95 cursor-pointer"
               title="تحميل قالب جدول مدرسي فارغ بصيغة Excel"
             >
               <Download className="w-4 h-4 text-slate-500" />
@@ -1256,8 +1309,47 @@ export const TimetableTab: React.FC<TimetableTabProps> = ({
             <tbody className="divide-y divide-slate-100 bg-white">
               {filteredTimetable.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400">
-                    لا توجد فصول مطابقة لهذه الحصة حتى الآن. يمكنك استيراد الجدول كاملاً من ملف Excel أعلاه.
+                  <td colSpan={6} className="py-12 px-4 text-center">
+                    <div className="max-w-md mx-auto space-y-3">
+                      <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
+                        <Calendar className="w-6 h-6" />
+                      </div>
+                      <h4 className="font-bold text-slate-800 text-sm">
+                        {timetable.length === 0
+                          ? 'جدول المدرسة فارغ حالياً وجاهز لبيانات مدرستك'
+                          : 'لا توجد فصول مطابقة للفلترة المحددة'}
+                      </h4>
+                      <p className="text-xs text-slate-500 leading-relaxed">
+                        {timetable.length === 0
+                          ? 'يمكنك استيراد جدول مدرستك كاملاً عبر ملف Excel من القسم العلوي، أو تحميل القالب وتعبئته، أو تحميل جدول تجريبي للاختبار.'
+                          : 'جرب تغيير اليوم أو الحصة أو إلغاء فلترة المعلم والمادة لعرض الحصص الدراسية.'}
+                      </p>
+                      {timetable.length === 0 && (
+                        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+                          >
+                            استيراد ملف Excel الآن
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleDownloadTemplateWithFeedback}
+                            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition border border-slate-200 cursor-pointer"
+                          >
+                            تحميل القالب
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleGenerate32ClassesDemo}
+                            className="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition border border-amber-200 cursor-pointer"
+                          >
+                            تحميل جدول تجريبي (32 فصلاً)
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -2241,6 +2333,44 @@ export const TimetableTab: React.FC<TimetableTabProps> = ({
                 type="button"
                 onClick={() => setShowReplaceTimetableConfirm(false)}
                 disabled={isSubmitting}
+                className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* نافذة تأكيد إفراغ الجدول لمدرسة جديدة */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 text-right">
+            <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center mb-4">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-slate-900 mb-2 font-['Cairo']">
+              تصفير وإفراغ الجدول لمدرسة جديدة
+            </h3>
+            <p className="text-xs text-slate-600 leading-relaxed mb-4">
+              هل أنت متأكد من رغبتك في إفراغ كافة حصص الجدول المدرسي الحالي (حذف {timetable.length} حصة)؟
+              <br />
+              <span className="text-rose-600 font-bold block mt-1.5">
+                سيصبح الجدول فارغاً تماماً للبدء من الصفر ورفع جدول مدرستك الجديد عبر Excel أو الربط السحابي.
+              </span>
+              (يمكنك دائماً استعادة جدول العرض التجريبي الـ 32 فصلاً في أي وقت لاحقاً).
+            </p>
+            <div className="flex gap-2.5">
+              <button
+                type="button"
+                onClick={handleClearTimetableForNewSchool}
+                className="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs transition shadow-xs active:scale-95"
+              >
+                نعم، إفراغ الجدول الآن
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowClearConfirm(false)}
                 className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition"
               >
                 إلغاء

@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Substitution } from '../../types';
 import { SCHOOL_WEEK_DAYS, normalizePeriodId } from '../../utils/excelUtils';
 import { generateQrDataUrl, getAssignmentAcknowledgmentUrl, formatAcknowledgmentTime } from '../../utils/qrUtils';
+import { downloadOrShareFile, isNativeAndroidApp } from '../../utils/fileExportUtils';
 import {
   Printer,
   X,
@@ -12,6 +13,10 @@ import {
   AlertTriangle,
   QrCode,
   Users,
+  Share2,
+  Download,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 interface PrintableSubstitutionReportProps {
@@ -36,6 +41,8 @@ export const PrintableSubstitutionReport: React.FC<PrintableSubstitutionReportPr
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState<string>('all');
   const [showQrInPrint, setShowQrInPrint] = useState<boolean>(true);
   const [qrMap, setQrMap] = useState<Record<string, string>>({});
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [copiedWhatsApp, setCopiedWhatsApp] = useState<boolean>(false);
 
   useEffect(() => {
     setActiveMode(reportMode);
@@ -156,8 +163,118 @@ export const PrintableSubstitutionReport: React.FC<PrintableSubstitutionReportPr
     };
   }, [filteredSubstitutions, isOpen, showQrInPrint]);
 
-  const handlePrint = () => {
-    window.print();
+  // نسخ كشف الاحتياط كنص منسق لمجموعات الواتساب وتعاميم المدرسة
+  const handleCopyWhatsApp = async () => {
+    try {
+      const title = activeMode === 'assistant'
+        ? `📋 كشف احتياط المعلمات — ليوم ${reportDay}`
+        : `📋 كشف الاحتياط المدرسي اليومي — ليوم ${reportDay}`;
+
+      let text = `*${title}*\n`;
+      text += `📅 التاريخ: ${new Date().toLocaleDateString('ar-SA')}\n`;
+      text += `━━━━━━━━━━━━━━━━━━━━\n`;
+
+      if (filteredSubstitutions.length === 0) {
+        text += `لا يوجد حصص احتياط مسجلة لهذا اليوم.\n`;
+      } else {
+        filteredSubstitutions.forEach((sub, idx) => {
+          text += `🔹 *${idx + 1}. فصل ${sub.gradeClass}* | الحصة: ${sub.period} (${sub.subject})\n`;
+          text += `   • المعلم الغائب: ${sub.absentTeacher}\n`;
+          text += `   • المعلم المكلف البديل: *${sub.substituteTeacher}*\n`;
+          if (sub.notes) text += `   • ملاحظات: ${sub.notes}\n`;
+          text += `\n`;
+        });
+      }
+
+      text += `━━━━━━━━━━━━━━━━━━━━\n`;
+      text += `يرجى من الزملاء المعلمين المكلفين المتابعة والاستلام. شاكرين تعاونكم.`;
+
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+        setCopiedWhatsApp(true);
+        setToastMsg('تم نسخ كشف الاحتياط بنجاح! جاهز للصق في مجموعات الواتساب 📋');
+        setTimeout(() => setCopiedWhatsApp(false), 3000);
+        setTimeout(() => setToastMsg(null), 5000);
+      }
+    } catch (err) {
+      console.error('Failed to copy text', err);
+    }
+  };
+
+  // مشاركة أو حفظ الكشف كملف مستقل يدعم أجهزة الأندرويد ومشاركة واتساب والمتصفحات
+  const handleExportOrShare = async () => {
+    try {
+      const reportElement = document.getElementById('printable-report-content');
+      if (!reportElement) return;
+
+      const title = activeMode === 'assistant'
+        ? `كشاف_الاحتياط_للمديرة_المساعدة_${reportDay}`
+        : `كشاف_الاحتياط_لمدير_المدرسة_${reportDay}`;
+
+      const htmlContent = `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Cairo', sans-serif; margin: 15px; background: #fff; color: #000; direction: rtl; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1.5px solid #334155; padding: 6px 8px; text-align: center; font-size: 13px; }
+    th { background: #f1f5f9; font-weight: 800; }
+    .no-print { display: none; }
+    @media print {
+      body { margin: 0; }
+      @page { size: A4 landscape; margin: 8mm; }
+    }
+  </style>
+</head>
+<body>
+  ${reportElement.innerHTML}
+  <script>
+    window.onload = function() {
+      setTimeout(function() { window.print(); }, 500);
+    };
+  </script>
+</body>
+</html>`;
+
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const fileName = `${title}.html`;
+
+      const result = await downloadOrShareFile({
+        blob,
+        fileName,
+        title: title.replace(/_/g, ' '),
+        text: `كشاف الاحتياط المدرسي ليوم ${reportDay}`,
+        dialogTitle: 'طباعة كشف الاحتياط أو حفظه كـ PDF أو مشاركته',
+      });
+
+      setToastMsg(result.message);
+      setTimeout(() => setToastMsg(null), 5000);
+    } catch (e) {
+      console.error('Error in handleExportOrShare:', e);
+      try {
+        window.print();
+      } catch {}
+    }
+  };
+
+  const handlePrint = async () => {
+    // في بيئة الأندرويد، استدعاء المشاركة/الحفظ يتيح للمستخدم خيار "طباعة" و "حفظ كـ PDF" عبر النظام
+    if (isNativeAndroidApp()) {
+      await handleExportOrShare();
+      return;
+    }
+
+    try {
+      window.print();
+    } catch {
+      await handleExportOrShare();
+    }
   };
 
   if (!isOpen) return null;
@@ -272,6 +389,37 @@ export const PrintableSubstitutionReport: React.FC<PrintableSubstitutionReportPr
               <span>طباعة الكشاف الآن</span>
             </button>
 
+            {/* زر مشاركة أو حفظ الكشف (يدعم هواتف الأندرويد والواتساب وحفظ الملفات) */}
+            <button
+              type="button"
+              onClick={handleExportOrShare}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl text-xs md:text-sm border border-indigo-200 transition active:scale-95 cursor-pointer shadow-2xs"
+              title="مشاركة الكشف كملف مستقل أو إرساله للطباعة عبر الواتساب أو حفظه (أندرويد ومتصفح)"
+            >
+              <Share2 className="w-3.5 h-3.5 text-indigo-600" />
+              <span>مشاركة وحفظ (أندرويد / PDF)</span>
+            </button>
+
+            {/* زر نسخ كشف الاحتياط للواتساب والتعاميم */}
+            <button
+              type="button"
+              onClick={handleCopyWhatsApp}
+              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-xl text-xs md:text-sm border border-emerald-200 transition active:scale-95 cursor-pointer shadow-2xs"
+              title="نسخ كشف الاحتياط كنص منسق ونشره في مجموعات الواتساب"
+            >
+              {copiedWhatsApp ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>تم النسخ!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>نسخ للواتساب 📋</span>
+                </>
+              )}
+            </button>
+
             {/* زر الإغلاق */}
             <button
               type="button"
@@ -283,6 +431,20 @@ export const PrintableSubstitutionReport: React.FC<PrintableSubstitutionReportPr
             </button>
           </div>
         </div>
+
+        {/* إشعار التفاعل المباشر */}
+        {toastMsg && (
+          <div className="no-print bg-indigo-600 text-white px-4 py-2 text-xs font-bold text-center flex items-center justify-between animate-fade-in">
+            <span>{toastMsg}</span>
+            <button
+              type="button"
+              onClick={() => setToastMsg(null)}
+              className="text-white/80 hover:text-white text-xs underline cursor-pointer"
+            >
+              إغلاق
+            </button>
+          </div>
+        )}
 
         {/* حاوية ورقة الطباعة الرسمية A4 */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-200/60 print:bg-white print:p-0">

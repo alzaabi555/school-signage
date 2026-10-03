@@ -19,6 +19,7 @@ import { AnalyticsTab } from './AnalyticsTab';
 import { BackupRestoreTab } from './BackupRestoreTab';
 import { FullSchoolBackup } from '../../utils/backupRestoreUtils';
 import { AppStateData } from '../../types';
+import { AdminAuthModal } from './AdminAuthModal';
 import { Menu, RefreshCw } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -104,6 +105,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<AdminTabType>('substitutions');
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const getTabLabel = (tab: AdminTabType): string => {
     switch (tab) {
@@ -155,6 +157,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         activeTab={activeTab}
         onSelectTab={setActiveTab}
         onSwitchToDisplay={onSwitchToDisplay}
+        onOpenAuthModal={() => setIsAuthModalOpen(true)}
         isOnline={isOnline}
         isSaving={isSubmitting}
         saveStatusMsg={saveStatusMsg}
@@ -310,6 +313,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         )}
       </main>
     </div>
+
+    {/* نافذة تسجيل الدخول وإدارة الجلسة وربط السحابة */}
+    <AdminAuthModal
+      isOpen={isAuthModalOpen}
+      onClose={() => setIsAuthModalOpen(false)}
+    />
   </div>
   );
 };
