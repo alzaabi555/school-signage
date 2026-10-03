@@ -59,8 +59,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
       {/* الشريط العلوي */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-white border border-slate-200/90 flex items-center justify-center p-1 shadow-xs shrink-0">
-            <SchoolLogo className="w-9 h-9" />
+          <div className="w-11 h-11 rounded-2xl bg-white border border-slate-200/90 flex items-center justify-center shadow-xs shrink-0 overflow-hidden">
+            <SchoolLogo className="w-full h-full" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">

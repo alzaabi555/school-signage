@@ -104,8 +104,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       {/* رأس القائمة الجانبية: الشعار وهوية المدرسة وزر الإغلاق في الجوال */}
       <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-center p-1 shadow-2xs shrink-0">
-            <SchoolLogo className="w-8 h-8" />
+          <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-center shadow-2xs shrink-0 overflow-hidden">
+            <SchoolLogo className="w-full h-full" />
           </div>
           <div>
             <h1 className="text-sm font-bold text-slate-900 font-['Cairo'] tracking-tight">
