@@ -1,6 +1,14 @@
 import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { auth, testFirestoreConnection, signInWithGoogle, logOut } from '../services/firebase';
+import {
+  auth,
+  testFirestoreConnection,
+  signInWithGoogle,
+  signInWithEmail,
+  signUpWithEmail,
+  signInQuickAdmin,
+  logOut,
+} from '../services/firebase';
 
 interface FirebaseContextType {
   currentUser: User | null;
@@ -8,6 +16,9 @@ interface FirebaseContextType {
   isAdmin: boolean;
   isFirestoreConnected: boolean;
   signInWithGoogle: () => Promise<User | null>;
+  signInWithEmail: (email: string, pass: string) => Promise<User | null>;
+  signUpWithEmail: (email: string, pass: string) => Promise<User | null>;
+  signInQuickAdmin: () => Promise<User | null>;
   logOut: () => Promise<void>;
 }
 
@@ -17,6 +28,9 @@ const FirebaseContext = createContext<FirebaseContextType>({
   isAdmin: false,
   isFirestoreConnected: false,
   signInWithGoogle: async () => null,
+  signInWithEmail: async () => null,
+  signUpWithEmail: async () => null,
+  signInQuickAdmin: async () => null,
   logOut: async () => {},
 });
 
@@ -54,6 +68,9 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       isAdmin,
       isFirestoreConnected,
       signInWithGoogle,
+      signInWithEmail,
+      signUpWithEmail,
+      signInQuickAdmin,
       logOut,
     }),
     [currentUser, isAuthReady, isAdmin, isFirestoreConnected]
