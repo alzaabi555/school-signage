@@ -135,25 +135,44 @@ export function generateFullBackupData(
 }
 
 /**
- * تنزيل ملف النسخة الاحتياطية JSON محلياً على جهاز المستخدم
+ * تنزيل ملف النسخة الاحتياطية JSON محلياً على جهاز المستخدم مع دعم أجهزة الأندرويد والمتصفحات
  */
-export function downloadBackupFile(backup: FullSchoolBackup): void {
+export async function downloadBackupFile(backup: FullSchoolBackup): Promise<void> {
   const jsonStr = JSON.stringify(backup, null, 2);
   const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
 
   // تسمية الملف باسم المدرسة والتاريخ بدقة
   const dateStr = new Date().toISOString().slice(0, 10);
   const safeSchoolName = backup.schoolName.replace(/[\/\\?%*:|"<>]/g, '_').replace(/\s+/g, '_');
   const filename = `نسخة_احتياطية_${safeSchoolName}_${dateStr}.json`;
 
+  const isMobileOrAndroid = typeof navigator !== 'undefined' && (/android/i.test(navigator.userAgent) || Boolean((window as unknown as { Capacitor?: unknown }).Capacitor));
+  if (isMobileOrAndroid && typeof navigator !== 'undefined' && navigator.canShare) {
+    try {
+      const file = new File([blob], filename, { type: 'application/json' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `نسخة احتياطية: ${backup.schoolName}`,
+          text: `ملف النسخة الاحتياطية لمدرسة ${backup.schoolName}`,
+        });
+        return;
+      }
+    } catch (shareErr) {
+      if (shareErr instanceof Error && shareErr.name === 'AbortError') return;
+    }
+  }
+
+  const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
   link.download = filename;
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  setTimeout(() => {
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, 2000);
 }
 
 /**

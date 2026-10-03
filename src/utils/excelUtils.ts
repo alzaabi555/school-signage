@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { ClassScheduleItem, Substitution } from '../types';
+import { downloadOrShareFile } from './fileExportUtils';
 import {
   OFFICIAL_CLASSES_32,
   OFFICIAL_TEACHERS_LIST,
@@ -789,7 +790,37 @@ export function exportOfficialTimetableToExcel(
   XLSX.utils.book_append_sheet(workbook, wsAll, 'الجدول الشامل المسطح');
 
   const fileName = customFileName || 'الجدول_المدرسي_المعتمد_32_فصلا_وقائمة_المعلمين.xlsx';
-  XLSX.writeFile(workbook, fileName);
+  saveOrShareWorkbook(workbook, fileName, 'الجدول المدرسي المعتمد');
+}
+
+/**
+ * حفظ ملف Excel أو مشاركته مع دعم كامل لمتصفحات الويب وتطبيقات الأندرويد (WebView / Capacitor)
+ */
+export async function saveOrShareWorkbook(
+  workbook: XLSX.WorkBook,
+  fileName: string,
+  title?: string
+) {
+  try {
+    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    const blob = new Blob([wbout], { type: mimeType });
+
+    await downloadOrShareFile({
+      blob,
+      fileName,
+      title: title || fileName,
+      text: `ملف الجدول المدرسي: ${fileName}`,
+      dialogTitle: 'تصدير أو مشاركة أو حفظ ملف Excel',
+    });
+  } catch (err) {
+    console.error('saveOrShareWorkbook error, falling back to XLSX.writeFile:', err);
+    try {
+      XLSX.writeFile(workbook, fileName);
+    } catch (writeErr) {
+      console.error('XLSX.writeFile failed:', writeErr);
+    }
+  }
 }
 
 /**
