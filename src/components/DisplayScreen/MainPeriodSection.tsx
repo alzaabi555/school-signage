@@ -500,6 +500,25 @@ export const MainPeriodSection: React.FC<MainPeriodSectionProps> = ({
     setPageCountdown(10);
   };
 
+  if (timetable.length === 0) {
+    return (
+      <section className="flex-1 flex flex-col h-full bg-white rounded-2xl border border-slate-200/90 p-6 md:p-10 shadow-xs items-center justify-center text-center">
+        <div className="w-16 h-16 rounded-3xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center mx-auto mb-3 shadow-xs">
+          <Calendar className="w-8 h-8" />
+        </div>
+        <h3 className="text-base md:text-lg font-black text-slate-800 font-['Cairo'] mb-1">
+          بانتظار اعتماد ورفع جدول الحصص
+        </h3>
+        <p className="text-xs md:text-sm text-slate-500 max-w-md mx-auto mb-4 leading-relaxed">
+          لم يتم رفع جدول الحصص لهذه المدرسة بعد. يمكن لمشرف النظام تسجيل الدخول إلى لوحة الإشراف ورفع ملف جدول المدرسة من خلال ملف Excel أو المزامنة مع السحابة.
+        </p>
+        <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-3.5 py-1.5 rounded-xl border border-indigo-200 text-xs font-bold">
+          <span>نظام الشاشات المدرسية الذكية في وضع الاستعداد ⚡</span>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="flex-1 flex flex-col h-full bg-white rounded-2xl border border-slate-200/90 p-2 md:p-2.5 shadow-xs overflow-hidden relative">
       {/* 1. الشريط العلوي: اختيار اليوم + اختيار الحصة + زر التبديل بين وضع الفصول ووضع المواد */}
