@@ -525,8 +525,8 @@ export const MobileDisplayScreen: React.FC<MobileDisplayScreenProps> = ({
         <div className="w-full min-w-0 flex items-center justify-between gap-2">
           {/* اسم المدرسة وشعار مباشر */}
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center p-0.5 shadow-xs shrink-0">
-              <SchoolLogo className="w-7 h-7" />
+            <div className="w-9 h-9 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center shadow-xs shrink-0 overflow-hidden">
+              <SchoolLogo className="w-full h-full" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
