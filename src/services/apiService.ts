@@ -103,11 +103,12 @@ export function loadLocalData(): AppStateData {
       }
     }
 
-    let finalTimetable = INITIAL_TIMETABLE;
+    // في حال عدم وجود جدول محفوظ مسبقاً، يبدأ التطبيق بجدول فارغ ونظيف ليتيح للمدرسة الجديدة رفع جدولها الخاص
+    let finalTimetable: ClassScheduleItem[] = [];
     if (savedTimetable) {
       try {
         const parsed = JSON.parse(savedTimetable);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           const validRows = parsed
             .filter(
               (t: any) =>
@@ -123,14 +124,12 @@ export function loadLocalData(): AppStateData {
               teacher: normalizeTeacherNameCanonical(t.teacher),
             }));
           const cleanRows = deduplicateTimetable(validRows);
-          if (cleanRows.length > 0) {
-            finalTimetable = cleanRows;
-            // تنظيف فوري للتخزين المحلي إن كان يحتوي على تكرارات سابقة
-            if (cleanRows.length !== validRows.length) {
-              try {
-                localStorage.setItem(STORAGE_KEYS.TIMETABLE, JSON.stringify(cleanRows));
-              } catch {}
-            }
+          finalTimetable = cleanRows;
+          // تنظيف فوري للتخزين المحلي إن كان يحتوي على تكرارات سابقة
+          if (cleanRows.length !== validRows.length) {
+            try {
+              localStorage.setItem(STORAGE_KEYS.TIMETABLE, JSON.stringify(cleanRows));
+            } catch {}
           }
         }
       } catch (err) {

@@ -16,6 +16,9 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInAnonymously,
   signOut as firebaseSignOut,
   onAuthStateChanged,
   User,
@@ -133,12 +136,56 @@ testFirestoreConnection().catch((err) => {
 });
 
 // دوال إدارة جلسة تسجيل الدخول
+export async function signInQuickAdmin(): Promise<User | null> {
+  try {
+    const cred = await signInAnonymously(auth);
+    return cred.user;
+  } catch (error) {
+    console.error('Quick admin sign in failed:', error);
+    throw new Error('تعذر تسجيل الدخول السريع كمدير، يرجى استخدام البريد الإلكتروني أو رمز المرور المحلي.');
+  }
+}
+
 export async function signInWithGoogle(): Promise<User | null> {
   try {
     const result = await signInWithPopup(auth, googleProvider);
     return result.user;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Google Sign In failed:', error);
+    const errObj = error as { code?: string; message?: string };
+    const rawMsg = String(errObj?.message || error || '').toLowerCase();
+    if (
+      errObj?.code === 'auth/operation-not-supported-in-this-environment' ||
+      errObj?.code === 'auth/disallowed-useragent' ||
+      errObj?.code === 'auth/invalid-action' ||
+      rawMsg.includes('invalid') ||
+      rawMsg.includes('useragent') ||
+      rawMsg.includes('popup')
+    ) {
+      throw new Error(
+        'تسجيل الدخول المباشر بحساب Google مقيد أمنياً من قبل Google داخل تطبيقات الـ WebView على الأندرويد. يمكنك تسجيل الدخول بالبريد الإلكتروني أو الدخول السريع كمدير، أو الاعتماد على رمز مرور الإدارة (PIN) للمتابعة.'
+      );
+    }
+    throw error;
+  }
+}
+
+export async function signInWithEmail(email: string, pass: string): Promise<User | null> {
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email.trim(), pass);
+    return cred.user;
+  } catch (error) {
+    console.error('Email Sign In failed:', error);
+    throw error;
+  }
+}
+
+export async function signUpWithEmail(email: string, pass: string): Promise<User | null> {
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email.trim(), pass);
+    return cred.user;
+  } catch (error) {
+    console.error('Email Sign Up failed:', error);
     throw error;
   }
 }
