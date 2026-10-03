@@ -91,9 +91,9 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="relative bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-5 md:px-6 py-2.5 flex items-center justify-between shadow-xs z-20">
       {/* الجانب الأيمن: شعار واسم المدرسة وحالة الاتصال */}
       <div className="flex items-center gap-3.5">
-        <div className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-white text-slate-800 shadow-md shadow-indigo-600/10 border border-slate-200/90 p-1 shrink-0">
-          <SchoolLogo className="w-9 h-9" />
-          <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-xs"></div>
+        <div className="relative flex items-center justify-center w-11 h-11 rounded-2xl bg-white shadow-md shadow-indigo-600/10 border border-slate-200/90 shrink-0 overflow-hidden">
+          <SchoolLogo className="w-full h-full" />
+          <div className="absolute top-0.5 right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white shadow-xs"></div>
         </div>
 
         <div>
